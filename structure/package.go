@@ -21,7 +21,7 @@ type Package struct {
 	Type            string          `json:"type,omitempty"`
 	Extra           json.RawMessage `json:"extra,omitempty"`
 	Autoload        json.RawMessage `json:"autoload,omitempty"`
-	NotificationUrl string          `json:"notification-url,omitempty"`
+	NotificationURL string          `json:"notification-url,omitempty"`
 	License         json.RawMessage `json:"license,omitempty"`
 	Authors         json.RawMessage `json:"authors,omitempty"`
 	Description     string          `json:"description,omitempty"`
@@ -31,6 +31,7 @@ type Package struct {
 	Time            string          `json:"time,omitempty"`
 }
 
+// Override composer package struct parsing into string
 func (p Package) String() string {
 	s, err := json.MarshalIndent(p, "", "\t")
 	if err != nil {

@@ -25,7 +25,9 @@ type LockFile struct {
 	PlatformDev      json.RawMessage `json:"platform-dev,omitempty"`
 }
 
-func (lf LockFile) Merge(lfRight LockFile) LockFile {
+// Merge received lock file with current file
+// New file will be returned
+func (lf *LockFile) Merge(lfRight *LockFile) *LockFile {
 	var result LockFile
 
 	result.Readme = lf.Readme
@@ -41,8 +43,8 @@ func (lf LockFile) Merge(lfRight LockFile) LockFile {
 	result.PlatformDev = lf.PlatformDev
 
 	for i := 0; i < len(lfRight.PackagesDev); i++ {
-		foundDev, idxDev, errDev := result.GetPackageDevByname(lfRight.PackagesDev[i].Name)
-		found, idx, err := result.GetPackageByname(lfRight.PackagesDev[i].Name)
+		foundDev, idxDev, errDev := result.getPackageDevByname(lfRight.PackagesDev[i].Name)
+		found, idx, err := result.getPackageByname(lfRight.PackagesDev[i].Name)
 
 		if err != nil && errDev != nil { // package was not found
 			fmt.Println("Dev package was not found in composer_l.lock: " + lfRight.PackagesDev[i].Name)
@@ -76,8 +78,8 @@ func (lf LockFile) Merge(lfRight LockFile) LockFile {
 	}
 
 	for i := 0; i < len(lfRight.Packages); i++ {
-		foundDev, idxDev, errDev := result.GetPackageDevByname(lfRight.Packages[i].Name)
-		found, idx, err := result.GetPackageByname(lfRight.Packages[i].Name)
+		foundDev, idxDev, errDev := result.getPackageDevByname(lfRight.Packages[i].Name)
+		found, idx, err := result.getPackageByname(lfRight.Packages[i].Name)
 
 		if err != nil && errDev != nil { // package was not found
 			fmt.Println("Package was not found in composer_l.lock: " + lfRight.Packages[i].Name)
@@ -102,10 +104,10 @@ func (lf LockFile) Merge(lfRight LockFile) LockFile {
 		}
 	}
 
-	return result
+	return &result
 }
 
-func (lf LockFile) GetPackageByname(name string) (Package, int, error) {
+func (lf *LockFile) getPackageByname(name string) (Package, int, error) {
 	for i := 0; i < len(lf.Packages); i++ {
 		if lf.Packages[i].Name == name {
 			return lf.Packages[i], i, nil
@@ -116,7 +118,7 @@ func (lf LockFile) GetPackageByname(name string) (Package, int, error) {
 	return result, -1, errors.New("Package was not found")
 }
 
-func (lf LockFile) GetPackageDevByname(name string) (Package, int, error) {
+func (lf *LockFile) getPackageDevByname(name string) (Package, int, error) {
 	for i := 0; i < len(lf.PackagesDev); i++ {
 		if lf.PackagesDev[i].Name == name {
 			return lf.PackagesDev[i], i, nil
@@ -127,13 +129,14 @@ func (lf LockFile) GetPackageDevByname(name string) (Package, int, error) {
 	return result, -1, errors.New("Package was not found")
 }
 
-func (p LockFile) String() string {
+// Override composer file struct parsing into string
+func (lf *LockFile) String() string {
 	var b bytes.Buffer
 	writer := io.Writer(&b)
 
 	enc := json.NewEncoder(writer)
 	enc.SetEscapeHTML(false)
-	enc.Encode(p)
+	enc.Encode(lf)
 
 	return b.String()
 }
